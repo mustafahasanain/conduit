@@ -1,15 +1,22 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Plus_Jakarta_Sans, Syne, Geist_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const jakarta = Plus_Jakarta_Sans({
+  variable: "--font-sans",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const syne = Syne({
+  variable: "--font-display",
+  subsets: ["latin"],
+  weight: ["700", "800"],
+});
+
+const mono = Geist_Mono({
+  variable: "--font-mono",
   subsets: ["latin"],
 });
 
@@ -26,7 +33,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${jakarta.variable} ${syne.variable} ${mono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         {children}
