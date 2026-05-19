@@ -44,7 +44,7 @@ export default function ReviewPage() {
       <AnimatedBackground />
       <main className="min-h-screen flex items-center justify-center p-4 py-8">
         <div
-          className="w-full max-w-2xl rounded-2xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur-2xl"
+          className="w-full max-w-2xl rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-8 shadow-2xl backdrop-blur-2xl"
           style={{
             boxShadow:
               "0 0 80px 0 rgba(79,70,229,0.15), 0 25px 50px -12px rgba(0,0,0,0.6)",

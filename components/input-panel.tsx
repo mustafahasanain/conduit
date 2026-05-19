@@ -10,6 +10,7 @@ import {
   Loader2,
   ArrowRight,
 } from "lucide-react";
+import { toast } from "sonner";
 import type { NormalizedTask } from "@/lib/schemas";
 
 type InputFormat = "json" | "csv";
@@ -65,6 +66,9 @@ export function InputPanel() {
       const text = await navigator.clipboard.readText();
       setContent(text);
     } catch {
+      toast.error("Clipboard access denied", {
+        description: "Paste manually into the text area.",
+      });
       setError("Clipboard access denied — paste manually into the box.");
     }
   }
