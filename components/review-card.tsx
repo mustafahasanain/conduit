@@ -67,6 +67,11 @@ export function ReviewCard({ task, notice }: ReviewCardProps) {
   const payloadRef = useRef<CreatePayload | null>(null);
 
   async function runTargets(targets: Target[], payload: CreatePayload) {
+    // Allow TickTick-only retries to reference an already-created Notion page.
+    const prevNotion = results.notion;
+    const notionUrl =
+      prevNotion?.ok ? (prevNotion.data as NotionSuccess).url : undefined;
+
     for (const target of targets) {
       setPendingTarget(target);
       let targetResult: Result<NotionSuccess | TickTickSuccess>;
@@ -74,7 +79,7 @@ export function ReviewCard({ task, notice }: ReviewCardProps) {
         const res = await fetch("/api/create", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...payload, targets: [target] }),
+          body: JSON.stringify({ ...payload, targets: [target], notionUrl }),
         });
         const data = (await res.json()) as Record<string, Result<NotionSuccess | TickTickSuccess>> & { error?: string };
         if (!res.ok) {

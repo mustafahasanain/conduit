@@ -7,6 +7,8 @@ import { createTickTickTask } from "@/lib/integrations/ticktick";
 const CreateRequestSchema = CreatePayloadSchema.extend({
   // Optional subset of targets; omitting runs all
   targets: z.array(z.enum(["notion", "ticktick"])).min(1).optional(),
+  // Used by the client when retrying TickTick alone after Notion already succeeded
+  notionUrl: z.string().url().nullable().optional(),
 });
 
 export async function POST(request: Request) {
@@ -34,15 +36,18 @@ export async function POST(request: Request) {
   const payload = { task, confirmedTitle, confirmedDueDate, startDate };
 
   const results: Record<string, unknown> = {};
+  let notionUrl: string | null = parsed.data.notionUrl ?? null;
 
-  await Promise.all([
-    targets.includes("notion")
-      ? createOrUpdatePage(task, payload).then((r) => { results.notion = r; })
-      : Promise.resolve(),
-    targets.includes("ticktick")
-      ? createTickTickTask(task, payload).then((r) => { results.ticktick = r; })
-      : Promise.resolve(),
-  ]);
+  // Run Notion first so its URL can become the TickTick task's content.
+  if (targets.includes("notion")) {
+    const r = await createOrUpdatePage(task, payload);
+    results.notion = r;
+    if (r.ok) notionUrl = r.data.url;
+  }
+
+  if (targets.includes("ticktick")) {
+    results.ticktick = await createTickTickTask(task, payload, notionUrl);
+  }
 
   return Response.json(results);
 }

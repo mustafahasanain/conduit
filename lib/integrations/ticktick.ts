@@ -12,42 +12,40 @@ function buildTaskUrl(taskId: string, projectId: string | undefined): string | n
   return `https://ticktick.com/webapp/#q/all/tasks/${taskId}`;
 }
 
-function buildContent(task: NormalizedTask): string {
-  const parts: string[] = [];
+function todayISODate(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
 
-  if (task.description) parts.push(task.description);
-  if (task.additionDescription) {
-    if (parts.length > 0) parts.push("");
-    parts.push("Addition Description:", task.additionDescription);
-  }
-
-  const detailEntries = Object.entries(task.details);
-  if (detailEntries.length > 0) {
-    if (parts.length > 0) parts.push("");
-    parts.push("Details:");
-    for (const [label, value] of detailEntries) {
-      parts.push(`${label}: ${value}`);
-    }
-  }
-
-  return parts.join("\n").slice(0, 8000); // TickTick content limit
+function toTickTickDate(dateStr: string): string {
+  return `${dateStr}T00:00:00+0000`;
 }
 
 export async function createTickTickTask(
   task: NormalizedTask,
-  payload: CreatePayload
+  payload: CreatePayload,
+  notionUrl?: string | null
 ): Promise<Result<TickTickSuccess>> {
   const token = process.env.TICKTICK_ACCESS_TOKEN;
   if (!token) return { ok: false, error: "TICKTICK_ACCESS_TOKEN not configured" };
 
   const body: Record<string, unknown> = {
     title: payload.confirmedTitle,
-    content: buildContent(task),
+    content: notionUrl ?? "",
     priority: TICKTICK_PRIORITY_MAP[task.priority ?? ""] ?? TICKTICK_PRIORITY_DEFAULT,
   };
 
   if (payload.confirmedDueDate) {
-    body.dueDate = `${payload.confirmedDueDate}T00:00:00+0000`;
+    // Daily recurring task: first instance on (start date or today), repeats
+    // every day, ends on the confirmed due date. Each instance is all-day.
+    const firstDate = payload.startDate ?? todayISODate();
+    body.isAllDay = true;
+    body.startDate = toTickTickDate(firstDate);
+    body.dueDate = toTickTickDate(firstDate);
+    if (firstDate < payload.confirmedDueDate) {
+      const until = payload.confirmedDueDate.replace(/-/g, "");
+      body.repeatFlag = `RRULE:FREQ=DAILY;UNTIL=${until}T235959Z`;
+    }
   }
 
   const projectId = process.env.TICKTICK_PROJECT_ID;
