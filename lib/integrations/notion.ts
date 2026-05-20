@@ -44,7 +44,7 @@ function textToBlocks(text: string): BlockObjectRequest[] {
 
 function buildProperties(task: NormalizedTask, payload: CreatePayload) {
   const props: Record<string, unknown> = {
-    Title: { title: richText(payload.confirmedTitle) },
+    Task: { title: richText(payload.confirmedTitle) },
     ID: { rich_text: richText(task.id) },
   };
 
@@ -55,7 +55,7 @@ function buildProperties(task: NormalizedTask, payload: CreatePayload) {
       status: { name: NOTION_STATUS_MAP[task.status] ?? NOTION_STATUS_FALLBACK },
     };
   }
-  if (task.project) props["Project"] = { select: { name: task.project } };
+  // Project is a relation in this database — skip; the value still appears in the page body Details.
   if (task.creationDate) {
     props["Created Date"] = { date: { start: toNotionDate(task.creationDate) } };
   }
