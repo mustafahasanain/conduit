@@ -10,6 +10,16 @@ interface NotionSuccess {
   created: boolean;
 }
 
+interface TickTickSuccess {
+  taskId: string;
+  url: string | null;
+}
+
+const TARGET_OPEN_LABEL: Record<Target, string> = {
+  notion: "Open in Notion",
+  ticktick: "Open in TickTick",
+};
+
 interface StatusResultProps {
   results: PartialCreateResult;
   retrying: Target | null;
@@ -55,6 +65,8 @@ function TargetRow({
 
   if (result.ok) {
     const notionData = target === "notion" ? (result.data as NotionSuccess) : null;
+    const ticktickData = target === "ticktick" ? (result.data as TickTickSuccess) : null;
+    const url = notionData?.url ?? ticktickData?.url ?? null;
     return (
       <div className="flex items-start gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3">
         <CheckCircle2 size={18} className="shrink-0 mt-0.5 text-emerald-400" aria-hidden="true" />
@@ -65,14 +77,14 @@ function TargetRow({
               {notionData?.created === false ? "updated" : "created"}
             </span>
           </p>
-          {notionData?.url && (
+          {url && (
             <a
-              href={notionData.url}
+              href={url}
               target="_blank"
               rel="noopener noreferrer"
               className="mt-1 inline-flex items-center gap-1 text-xs text-indigo-400 hover:text-indigo-300 transition-colors focus-visible:outline-none focus-visible:underline"
             >
-              Open in Notion
+              {TARGET_OPEN_LABEL[target]}
               <ExternalLink size={11} aria-hidden="true" />
             </a>
           )}
@@ -139,9 +151,16 @@ export function StatusResult({ results, retrying, onRetry, onBack }: StatusResul
         <button
           type="button"
           onClick={onBack}
-          className="text-sm text-indigo-400 hover:text-indigo-300 transition-colors focus-visible:outline-none focus-visible:underline"
+          className="
+            mt-2 w-full rounded-xl px-4 py-3 text-sm font-semibold
+            text-white transition-all duration-200
+            bg-gradient-to-r from-indigo-600 to-violet-600
+            hover:from-indigo-500 hover:to-violet-500
+            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400
+            active:scale-[0.98]
+          "
         >
-          ← Transform another task
+          Add another task
         </button>
       )}
     </div>

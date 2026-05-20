@@ -4,7 +4,13 @@ import type { Result } from "@/lib/result";
 
 const TICKTICK_API = "https://api.ticktick.com/open/v1";
 
-type TickTickSuccess = { taskId: string };
+type TickTickSuccess = { taskId: string; url: string | null };
+
+function buildTaskUrl(taskId: string, projectId: string | undefined): string | null {
+  if (!taskId || taskId === "unknown") return null;
+  if (projectId) return `https://ticktick.com/webapp/#p/${projectId}/tasks/${taskId}`;
+  return `https://ticktick.com/webapp/#q/all/tasks/${taskId}`;
+}
 
 function buildContent(task: NormalizedTask): string {
   const parts: string[] = [];
@@ -62,8 +68,12 @@ export async function createTickTickTask(
       return { ok: false, error: `TickTick API ${res.status}: ${text}` };
     }
 
-    const data = (await res.json()) as { id?: string };
-    return { ok: true, data: { taskId: data.id ?? "unknown" } };
+    const data = (await res.json()) as { id?: string; projectId?: string };
+    const taskId = data.id ?? "unknown";
+    return {
+      ok: true,
+      data: { taskId, url: buildTaskUrl(taskId, data.projectId ?? projectId) },
+    };
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     return { ok: false, error: `TickTick error: ${msg}` };

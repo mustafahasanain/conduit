@@ -10,7 +10,7 @@ import { StatusResult } from "./status-result";
 export type Target = "notion" | "ticktick";
 
 interface NotionSuccess { pageId: string; url: string; created: boolean }
-interface TickTickSuccess { taskId: string }
+interface TickTickSuccess { taskId: string; url: string | null }
 
 export type PartialCreateResult = {
   notion?: Result<NotionSuccess>;
@@ -297,23 +297,43 @@ export function ReviewCard({ task, notice }: ReviewCardProps) {
         </div>
       )}
 
-      <button
-        type="button"
-        onClick={handleConfirm}
-        disabled={!title.trim() || isCreating}
-        aria-busy={isCreating}
-        className="
-          relative w-full overflow-hidden rounded-xl px-4 py-3 text-sm font-semibold
-          text-white transition-all duration-200
-          bg-gradient-to-r from-indigo-600 to-violet-600
-          hover:from-indigo-500 hover:to-violet-500
-          focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400
-          disabled:opacity-50 disabled:cursor-not-allowed
-          active:scale-[0.98]
-        "
-      >
-        Confirm & Create
-      </button>
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={() => {
+            sessionStorage.removeItem("conduit_draft");
+            sessionStorage.removeItem("conduit_notice");
+            window.location.href = "/";
+          }}
+          disabled={isCreating}
+          className="
+            rounded-xl border border-white/10 bg-white/5
+            px-4 py-3 text-sm font-medium text-white/60
+            transition-all duration-200 hover:bg-white/10 hover:text-white/90
+            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30
+            disabled:opacity-50 disabled:cursor-not-allowed
+          "
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          onClick={handleConfirm}
+          disabled={!title.trim() || isCreating}
+          aria-busy={isCreating}
+          className="
+            relative flex-1 overflow-hidden rounded-xl px-4 py-3 text-sm font-semibold
+            text-white transition-all duration-200
+            bg-gradient-to-r from-indigo-600 to-violet-600
+            hover:from-indigo-500 hover:to-violet-500
+            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400
+            disabled:opacity-50 disabled:cursor-not-allowed
+            active:scale-[0.98]
+          "
+        >
+          Confirm & Create
+        </button>
+      </div>
     </div>
   );
 }
